@@ -70,7 +70,7 @@ flags.DEFINE_string("device", "0", "Device for training.")
 
 flags.DEFINE_bool("profile", False, "Whether to turn on code profiling.")
 flags.DEFINE_bool("trace", False, "Whether to trace the code execution.")
-flags.DEFINE_integer("parallel", 1, "How many instances to run in parallel.")
+flags.DEFINE_integer("parallel", 16, "How many instances to run in parallel.")
 
 flags.DEFINE_bool("save_replay", True, "Whether to save a replay at the end.")
 
@@ -171,7 +171,7 @@ def main(unused_argv):
     COUNTER = agent.load_model(SNAPSHOT)
 
   threads = []
-  for _ in range(FLAGS.parallel - 1):
+  for _ in range(PARALLEL - 1):
     t = threading.Thread(target=run_thread, args=(agents[i], players, FLAGS.map, False))
     threads.append(t)
     t.daemon = True
