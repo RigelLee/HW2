@@ -56,13 +56,12 @@ flags.DEFINE_bool("use_raw_units", False,
 
 flags.DEFINE_bool("training", True, "Whether to train agents.")
 flags.DEFINE_bool("continuation", False, "Continuously training.")
-flags.DEFINE_integer("max_agent_steps", 0, "Total agent steps.")
+flags.DEFINE_integer("max_agent_steps", int(1e5), "Total agent steps.")
 flags.DEFINE_integer("game_steps_per_episode", None, "Game steps per episode.")
-flags.DEFINE_integer("max_episodes", 0, "Total episodes.")
 flags.DEFINE_integer("step_mul", 8, "Game steps per agent step.")
 flags.DEFINE_float("learning_rate", 5e-4, "Learning rate for training.")
 flags.DEFINE_float("discount", 0.99, "Discount rate for future rewards.")
-flags.DEFINE_integer("max_steps", int(1e5), "Total steps for training.")
+flags.DEFINE_integer("max_steps", int(1e6), "Total steps for training.")
 flags.DEFINE_integer("snapshot_step", int(1e3), "Step for snapshot.")
 flags.DEFINE_string("snapshot_path", "./snapshot/", "Path for snapshot.")
 flags.DEFINE_string("log_path", "./log/", "Path for log.")
@@ -101,13 +100,13 @@ def run_thread(agent, players, map_name, visualize):
       map_name=map_name,
       players=players,
       agent_interface_format=sc2_env.parse_agent_interface_format(
-          feature_screen=FLAGS.feature_screen_size,
-          feature_minimap=FLAGS.feature_minimap_size,
-          rgb_screen=FLAGS.rgb_screen_size,
-          rgb_minimap=FLAGS.rgb_minimap_size,
-          action_space=None,
-          use_feature_units=FLAGS.use_feature_units,
-          use_raw_units=FLAGS.use_raw_units),
+        feature_screen=FLAGS.feature_screen_size,
+        feature_minimap=FLAGS.feature_minimap_size,
+        rgb_screen=FLAGS.rgb_screen_size,
+        rgb_minimap=FLAGS.rgb_minimap_size,
+        action_space=None,
+        use_feature_units=FLAGS.use_feature_units,
+        use_raw_units=FLAGS.use_raw_units),
       step_mul=FLAGS.step_mul,
       game_steps_per_episode=FLAGS.game_steps_per_episode,
       visualize=visualize) as env:
