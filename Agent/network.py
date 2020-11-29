@@ -11,21 +11,25 @@ def build_fcn(minimap, screen, info, msize, ssize, num_action):
                          num_outputs=16,
                          kernel_size=5,
                          stride=1,
+                         activation_fn=tf.nn.relu
                          scope='mconv1')
   mconv2 = layers.conv2d(mconv1,
                          num_outputs=32,
                          kernel_size=3,
                          stride=1,
+                         activation_fn=tf.nn.relu
                          scope='mconv2')
   sconv1 = layers.conv2d(tf.transpose(screen, [0, 2, 3, 1]),
                          num_outputs=16,
                          kernel_size=5,
                          stride=1,
+                         activation_fn=tf.nn.relu
                          scope='sconv1')
   sconv2 = layers.conv2d(sconv1,
                          num_outputs=32,
                          kernel_size=3,
                          stride=1,
+                         activation_fn=tf.nn.relu
                          scope='sconv2')
   info_fc = layers.fully_connected(layers.flatten(info),
                                    num_outputs=256,
@@ -38,7 +42,7 @@ def build_fcn(minimap, screen, info, msize, ssize, num_action):
                                  num_outputs=1,
                                  kernel_size=1,
                                  stride=1,
-                                 activation_fn=None,
+                                 activation_fn=tf.nn.relu,
                                  scope='spatial_action')
   spatial_action = tf.nn.softmax(layers.flatten(spatial_action))
 
