@@ -56,7 +56,7 @@ flags.DEFINE_bool("use_raw_units", False,
 
 flags.DEFINE_bool("training", True, "Whether to train agents.")
 flags.DEFINE_bool("continuation", False, "Continuously training.")
-flags.DEFINE_integer("max_agent_steps", int(1e5), "Total agent steps.")
+flags.DEFINE_integer("max_agent_steps", 60, "Total agent steps.")
 flags.DEFINE_integer("game_steps_per_episode", None, "Game steps per episode.")
 flags.DEFINE_integer("step_mul", 8, "Game steps per agent step.")
 flags.DEFINE_float("learning_rate", 5e-4, "Learning rate for training.")
