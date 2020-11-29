@@ -126,6 +126,9 @@ def run_thread(agent, players, map_name, visualize):
           learning_rate = FLAGS.learning_rate * (1 - 0.9 * counter / FLAGS.max_steps)
           agent.update(replay_buffer, FLAGS.discount, learning_rate, counter)
           replay_buffer = []
+          obs = recorder[-1].observation
+          score = obs["score_cumulative"][0]
+          print('Your score is '+str(score)+'!')
           if counter % FLAGS.snapshot_step == 1:
             agent.save_model(SNAPSHOT, counter)
           if counter >= FLAGS.max_steps:
