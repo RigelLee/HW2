@@ -140,7 +140,17 @@ class A3CAgent(object):
     # Set act_id and act_args
     act_args = []
     for arg in actions.FUNCTIONS[act_id].args:
-      if arg.name in ('screen', 'minimap', 'screen2'):
+      '''
+      minimap : 64 x 64
+      screen : 84 x 84
+      '''
+      if arg.name in ('minimap'):
+        target[1] = int(target[1] / self.ssize * 64)
+        target[0] = int(target[0] / self.ssize * 64)
+        act_args.append([target[1], target[0]])
+      elif arg.name in ('screen', 'screen2'):
+        target[1] = int(target[1] / self.ssize * 84)
+        target[0] = int(target[0] / self.ssize * 84)
         act_args.append([target[1], target[0]])
       else:
         act_args.append([0])  # TODO: Be careful
