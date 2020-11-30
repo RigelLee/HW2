@@ -5,9 +5,19 @@ from __future__ import print_function
 import numpy as np
 from pysc2.lib import actions
 from pysc2.lib import features
-
+'''
+height_map: Shows the terrain levels.
+visibility: Which part of the map are hidden, have been seen or are currently visible.
+creep: Which parts have zerg creep.
+camera: Which part of the map are visible in the screen layers.
+player_id: Who owns the units, with absolute ids.
+player_relative: Which units are friendly vs hostile. Takes values in [0, 4], denoting [background, self, ally, neutral, enemy] units respectively.
+selected: Which units are selected.
+'''
 # TODO: preprocessing functions for the following layers
 _MINIMAP_PLAYER_ID = features.MINIMAP_FEATURES.player_id.index
+_MINIMAP_UNIT_TYPE = features.MINIMAP_FEATURES.unit_type.index
+
 _SCREEN_PLAYER_ID = features.SCREEN_FEATURES.player_id.index
 _SCREEN_UNIT_TYPE = features.SCREEN_FEATURES.unit_type.index
 
@@ -19,6 +29,8 @@ def preprocess_minimap(minimap):
     if i == _MINIMAP_PLAYER_ID:
       layers.append(minimap[i:i+1] / features.MINIMAP_FEATURES[i].scale)
     elif features.MINIMAP_FEATURES[i].type == features.FeatureType.SCALAR:
+      layers.append(minimap[i:i+1] / features.MINIMAP_FEATURES[i].scale)
+    elif i == _MINIMAP_UNIT_TYPE:
       layers.append(minimap[i:i+1] / features.MINIMAP_FEATURES[i].scale)
     else:
       layer = np.zeros([features.MINIMAP_FEATURES[i].scale, minimap.shape[1], minimap.shape[2]], dtype=np.float32)
@@ -52,6 +64,8 @@ def minimap_channel():
     if i == _MINIMAP_PLAYER_ID:
       c += 1
     elif features.MINIMAP_FEATURES[i].type == features.FeatureType.SCALAR:
+      c += 1
+    elif i == _MINIMAP_UNIT_TYPE:
       c += 1
     else:
       c += features.MINIMAP_FEATURES[i].scale
