@@ -41,7 +41,7 @@ def preprocess_minimap(minimap):
         unitList 是7个minigame中所有的unit种类，其他的不会在minigame中出现
       '''
       layer = np.zeros([ len(unitList) , minimap.shape[1], minimap.shape[2]], dtype=np.float32)
-      for j in range(unitList):
+      for j in len(unitList):
         indy, indx = (minimap[i] == unitList[j]).nonzero()
         layer[j, indy, indx] = 1
       layers.append(layer)
@@ -66,7 +66,7 @@ def preprocess_screen(screen):
         unitList 是7个minigame中所有的unit种类，其他的不会在minigame中出现
       '''
       layer = np.zeros([ len(unitList) , screen.shape[1], screen.shape[2]], dtype=np.float32)
-      for j in range(unitList):
+      for j in len(unitList):
         indy, indx = (screen[i] == unitList[j]).nonzero()
         layer[j, indy, indx] = 1
       layers.append(layer)      
