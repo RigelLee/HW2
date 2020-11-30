@@ -56,13 +56,13 @@ flags.DEFINE_bool("use_raw_units", False,
 
 flags.DEFINE_bool("training", True, "Whether to train agents.")
 flags.DEFINE_bool("continuation", True, "Continuously training.")
-flags.DEFINE_integer("max_agent_steps", 100000, "Total agent steps.")
+flags.DEFINE_integer("max_agent_steps", 60, "Total agent steps.")
 flags.DEFINE_integer("game_steps_per_episode", None, "Game steps per episode.")
 flags.DEFINE_integer("step_mul", 8, "Game steps per agent step.")
 flags.DEFINE_float("learning_rate", 5e-4, "Learning rate for training.")
 flags.DEFINE_float("discount", 0.99, "Discount rate for future rewards.")
 flags.DEFINE_integer("max_steps", int(1e6), "Total steps for training.")
-flags.DEFINE_integer("snapshot_step", int(100), "Step for snapshot.")
+flags.DEFINE_integer("snapshot_step", int(500), "Step for snapshot.")
 flags.DEFINE_string("snapshot_path", "./snapshot/", "Path for snapshot.")
 flags.DEFINE_string("log_path", "./log/", "Path for log.")
 flags.DEFINE_string("device", "0", "Device for training.")
@@ -155,7 +155,7 @@ def main(unused_argv):
 
   agents = []
   for i in range(PARALLEL):
-    agent = A3CAgent(FLAGS.training, 64, 64)
+    agent = A3CAgent(FLAGS.training, int(FLAGS.feature_minimap_size[0]), int(FLAGS.feature_screen_size[0]))
     agent.build_model(i > 0, DEVICE[i % len(DEVICE)])
     agents.append(agent)
 
@@ -166,8 +166,8 @@ def main(unused_argv):
   summary_writer = tf.summary.FileWriter(LOG)
   for i in range(PARALLEL):
     agents[i].setup(sess, summary_writer)
-
   agent.initialize()
+
   if not FLAGS.training or FLAGS.continuation:
     global COUNTER
     COUNTER = agent.load_model(SNAPSHOT)
