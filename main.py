@@ -40,7 +40,7 @@ COUNTER = 0
 LOCK = threading.Lock()
 
 FLAGS = flags.FLAGS
-flags.DEFINE_bool("render", True, "Whether to render with pygame.")
+flags.DEFINE_bool("render", False, "Whether to render with pygame.")
 point_flag.DEFINE_point("feature_screen_size", "64",
                         "Resolution for screen feature layers.")
 point_flag.DEFINE_point("feature_minimap_size", "64",
@@ -55,21 +55,21 @@ flags.DEFINE_bool("use_raw_units", False,
                   "Whether to include raw units.")
 
 flags.DEFINE_bool("training", True, "Whether to train agents.")
-flags.DEFINE_bool("continuation", False, "Continuously training.")
-flags.DEFINE_integer("max_agent_steps", 60, "Total agent steps.")
+flags.DEFINE_bool("continuation", True, "Continuously training.")
+flags.DEFINE_integer("max_agent_steps", 100000, "Total agent steps.")
 flags.DEFINE_integer("game_steps_per_episode", None, "Game steps per episode.")
 flags.DEFINE_integer("step_mul", 8, "Game steps per agent step.")
 flags.DEFINE_float("learning_rate", 5e-4, "Learning rate for training.")
 flags.DEFINE_float("discount", 0.99, "Discount rate for future rewards.")
 flags.DEFINE_integer("max_steps", int(1e6), "Total steps for training.")
-flags.DEFINE_integer("snapshot_step", int(1e3), "Step for snapshot.")
+flags.DEFINE_integer("snapshot_step", int(100), "Step for snapshot.")
 flags.DEFINE_string("snapshot_path", "./snapshot/", "Path for snapshot.")
 flags.DEFINE_string("log_path", "./log/", "Path for log.")
 flags.DEFINE_string("device", "0", "Device for training.")
 
 flags.DEFINE_bool("profile", False, "Whether to turn on code profiling.")
 flags.DEFINE_bool("trace", False, "Whether to trace the code execution.")
-flags.DEFINE_integer("parallel", 8, "How many instances to run in parallel.")
+flags.DEFINE_integer("parallel", 16, "How many instances to run in parallel.")
 
 flags.DEFINE_bool("save_replay", True, "Whether to save a replay at the end.")
 
