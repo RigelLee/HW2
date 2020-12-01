@@ -24,7 +24,7 @@ class A3CAgent(object):
     self.ssize = ssize
     self.isize = len(actions.FUNCTIONS)
     self.beta = 1
-    self.eta = 0.01
+    self.eta = 100
 
 
   def setup(self, sess, summary_writer):
@@ -39,7 +39,7 @@ class A3CAgent(object):
 
   def reset(self):
     # Epsilon schedule
-    self.epsilon = [0.05, 0.2]
+    self.epsilon = [0.05, 0.2, 0.1]
 
 
   def build_model(self, reuse, dev):
@@ -91,7 +91,7 @@ class A3CAgent(object):
       self.summary.append(tf.summary.scalar('value_loss', value_loss))
 
       # TODO: policy penalty
-      loss = policy_loss + self.beta * value_loss + self.eta * entropy_regularisation
+      loss = policy_loss + value_loss + self.eta * entropy_regularisation
 
       # Build the optimizer
       self.learning_rate = tf.placeholder(tf.float32, None, name='learning_rate')
@@ -140,10 +140,14 @@ class A3CAgent(object):
     if self.training and np.random.rand() < self.epsilon[0]:
       act_id = np.random.choice(valid_actions)
     if self.training and np.random.rand() < self.epsilon[1]:
-      dy = np.random.randint(-4, 5)
-      target[0] = int(max(0, min(self.ssize-1, target[0]+dy)))
-      dx = np.random.randint(-4, 5)
-      target[1] = int(max(0, min(self.ssize-1, target[1]+dx)))
+        if np.random.rand() < self.epsilon[2]:
+            target[0] = int(np.random.randint(0, self.ssize))
+            target[1] = int(np.random.randint(0, self.ssize))
+        else:
+            dy = np.random.randint(-4, 5)
+            target[0] = int(max(0, min(self.ssize-1, target[0]+dy)))
+            dx = np.random.randint(-4, 5)
+            target[1] = int(max(0, min(self.ssize-1, target[1]+dx)))
 
     # Set act_id and act_args
     act_args = []
