@@ -76,8 +76,8 @@ class A3CAgent(object):
       self.summary.append(tf.summary.histogram('non_spatial_action_prob', non_spatial_action_prob))
 
       #Compute entropy regularisation
-      non_spatial_action_prob_entropy = tf.reduce_sum(self.non_spatial_action * tf.log(tf.clip_by_value(self.non_spatial_action)), axis=1)
-      spatial_action_prob_entropy = tf.reduce_sum(self.spatial_action * tf.log(tf.clip_by_value(self.spatial_action)), axis=1)
+      non_spatial_action_prob_entropy = tf.reduce_sum(self.non_spatial_action * tf.log(tf.clip_by_value(self.non_spatial_action, 1e-10, 1.)), axis=1)
+      spatial_action_prob_entropy = tf.reduce_sum(self.spatial_action * tf.log(tf.clip_by_value(self.spatial_action, 1e-10, 1.)), axis=1)
       entropy = self.valid_spatial_action * spatial_action_prob_entropy + non_spatial_action_prob_entropy
 
       # Compute losses, more details in https://arxiv.org/abs/1602.01783
