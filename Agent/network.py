@@ -8,8 +8,8 @@ import tensorflow.contrib.layers as layers
 
 def build_fcn(minimap, screen, info, msize, ssize, num_action):
   # Extract features
-  l1_regularizer = layers.l1_regularizer(scale=0.05)
-  l2_regularizer = layers.l2_regularizer(scale=0.05)
+  l1_regularizer = layers.l1_regularizer(scale=0.0005)
+  l2_regularizer = layers.l2_regularizer(scale=0.005)
   mconv1 = layers.conv2d(tf.transpose(minimap, [0, 2, 3, 1]),
                          num_outputs=16,
                          kernel_size=5,
@@ -41,7 +41,7 @@ def build_fcn(minimap, screen, info, msize, ssize, num_action):
   info_fc = layers.fully_connected(layers.flatten(info),
                                    num_outputs=256,
                                    activation_fn=tf.tanh,
-                                   weights_regularizer=l1_regularizer,
+                                   #weights_regularizer=l1_regularizer,
                                    scope='info_fc')
 #   info_spatial = layers.fully_connected(layers.flatten(info),
 #                                    num_outputs=8,
@@ -71,7 +71,7 @@ def build_fcn(minimap, screen, info, msize, ssize, num_action):
   feat_fc = layers.fully_connected(feat_fc,
                                    num_outputs=256,
                                    activation_fn=tf.nn.relu,
-                                   weights_regularizer=l2_regularizer,
+                                   #weights_regularizer=l2_regularizer,
                                    scope='feat_fc')
   non_spatial_action = layers.fully_connected(feat_fc,
                                               num_outputs=num_action,
