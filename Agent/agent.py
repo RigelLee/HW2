@@ -23,6 +23,8 @@ class A3CAgent(object):
     self.msize = msize
     self.ssize = ssize
     self.isize = len(actions.FUNCTIONS)
+    self.beta = 1
+    self.eta = 1
 
 
   def setup(self, sess, summary_writer):
@@ -73,17 +75,23 @@ class A3CAgent(object):
       self.summary.append(tf.summary.histogram('spatial_action_prob', spatial_action_prob))
       self.summary.append(tf.summary.histogram('non_spatial_action_prob', non_spatial_action_prob))
 
+      #Compute entropy regularisation
+      non_spatial_action_prob_entropy = tf.reduce_sum(self.non_spatial_action * tf.log(tf.clip_by_value(self.non_spatial_action)), axis=1)
+      spatial_action_prob_entropy = tf.reduce_sum(self.spatial_action * tf.log(tf.clip_by_value(self.spatial_action)), axis=1)
+      entropy = self.valid_spatial_action * spatial_action_prob_entropy + non_spatial_action_prob_entropy
+
       # Compute losses, more details in https://arxiv.org/abs/1602.01783
       # Policy loss and value loss
       action_log_prob = self.valid_spatial_action * spatial_action_log_prob + non_spatial_action_log_prob
       advantage = tf.stop_gradient(self.value_target - self.value)
       policy_loss = - tf.reduce_mean(action_log_prob * advantage)
       value_loss = - tf.reduce_mean(self.value * advantage)
+      entropy_regularisation = - tf.reduce_mean(entropy)
       self.summary.append(tf.summary.scalar('policy_loss', policy_loss))
       self.summary.append(tf.summary.scalar('value_loss', value_loss))
 
       # TODO: policy penalty
-      loss = policy_loss + value_loss
+      loss = policy_loss + self.beta * value_loss + self.eta * entropy_regularisation
 
       # Build the optimizer
       self.learning_rate = tf.placeholder(tf.float32, None, name='learning_rate')
