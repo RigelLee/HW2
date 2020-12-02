@@ -24,7 +24,7 @@ class A3CAgent(object):
     self.ssize = ssize
     self.isize = len(actions.FUNCTIONS)
     self.beta = 1
-    self.eta = 100
+    self.eta = 0.001
 
 
   def setup(self, sess, summary_writer):
