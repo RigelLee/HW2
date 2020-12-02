@@ -93,7 +93,7 @@ class A3CAgent(object):
       self.summary.append(tf.summary.scalar('value_loss', value_loss))
 
       # TODO: policy penalty
-      loss = policy_loss + value_loss + self.eta * entropy_regularisation
+      loss = policy_loss + self.beta * value_loss + self.eta * entropy_regularisation
 
       # Build the optimizer
       self.learning_rate = tf.placeholder(tf.float32, None, name='learning_rate')
