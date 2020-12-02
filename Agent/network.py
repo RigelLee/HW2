@@ -43,6 +43,17 @@ def build_fcn(minimap, screen, info, msize, ssize, num_action):
                                    activation_fn=tf.tanh,
                                    #weights_regularizer=l1_regularizer,
                                    scope='info_fc')
+  info_fc_spatial = layers.fully_connected(layers.flatten(info),
+                                           num_outputs=32,
+                                           activation_fn=tf.tanh,
+                                           #weights_regularizer=l1_regularizer,
+                                           scope='info_fc_spatial')
+  info_fc_spatial = tf.expand_dims(info_fc_spatial, 1)
+  info_fc_spatial = tf.expand_dims(info_fc_spatial, 1)
+  for j in range(6):
+    info_fc_spatial = tf.concat([info_fc_spatial, info_fc_spatial], 1)
+    info_fc_spatial = tf.concat([info_fc_spatial, info_fc_spatial], 2)
+  
 #   info_spatial = layers.fully_connected(layers.flatten(info),
 #                                    num_outputs=8,
 #                                    activation_fn=tf.tanh,
@@ -56,7 +67,8 @@ def build_fcn(minimap, screen, info, msize, ssize, num_action):
 #               info_spatial[i][j][k] = info_spatial[i][0][0]
 
   # Compute spatial actions
-  feat_conv = tf.concat([mconv2, sconv2], axis=3)
+
+  feat_conv = tf.concat([mconv2, sconv2, info_fc_spatial], axis=3)
   spatial_action = layers.conv2d(feat_conv,
                                  num_outputs=1,
                                  kernel_size=1,
