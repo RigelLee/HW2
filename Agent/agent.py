@@ -39,7 +39,7 @@ class A3CAgent(object):
 
   def reset(self):
     # Epsilon schedule
-    self.epsilon = [0.05, 0.2, 0.1]
+    self.epsilon = [0.05, 0.2, 0.2]
 
 
   def build_model(self, reuse, dev):
@@ -76,9 +76,11 @@ class A3CAgent(object):
       self.summary.append(tf.summary.histogram('non_spatial_action_prob', non_spatial_action_prob))
 
       #Compute entropy regularisation
-      non_spatial_action_prob_entropy = tf.reduce_sum(self.non_spatial_action * tf.log(tf.clip_by_value(self.non_spatial_action, 1e-10, 1.)), axis=1)
+
+      non_spatial_action_prob_entropy = self.non_spatial_action * tf.log(tf.clip_by_value(self.non_spatial_action, 1e-10, 1.))                                 
+      valid_non_spatial_action_prob_entropy = tf.reduce_sum(non_spatial_action_prob_entropy * self.valid_non_spatial_action, axis=1)
       spatial_action_prob_entropy = tf.reduce_sum(self.spatial_action * tf.log(tf.clip_by_value(self.spatial_action, 1e-10, 1.)), axis=1)
-      entropy = self.valid_spatial_action * spatial_action_prob_entropy + non_spatial_action_prob_entropy
+      entropy = spatial_action_prob_entropy + valid_non_spatial_action_prob_entropy
 
       # Compute losses, more details in https://arxiv.org/abs/1602.01783
       # Policy loss and value loss
@@ -86,7 +88,7 @@ class A3CAgent(object):
       advantage = tf.stop_gradient(self.value_target - self.value)
       policy_loss = - tf.reduce_mean(action_log_prob * advantage)
       value_loss = - tf.reduce_mean(self.value * advantage)
-      entropy_regularisation = - tf.reduce_mean(entropy)
+      entropy_regularisation = tf.reduce_mean(entropy)
       self.summary.append(tf.summary.scalar('policy_loss', policy_loss))
       self.summary.append(tf.summary.scalar('value_loss', value_loss))
 
