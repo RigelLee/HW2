@@ -107,3 +107,45 @@ def screen_channel():
     else:
       c += features.SCREEN_FEATURES[i].scale
   return c
+
+def get_info(obs):
+  asize = len(actions.FUNCTIONS)
+#available_actions
+  aa = np.zeros([asize], dtype=np.float32)
+  aa[obs.observation['available_actions']] = 1
+  np.ravel(aa)
+#single_select
+  ss = np.zeros([7],dtype=np.float32)
+  ob = obs.observation['single_select']
+  for i in range(1):
+    ob = np.append(ob,np.zeros([1,7],dtype=np.float32))
+  ss = ob[0:1*7]
+  np.ravel(ss)
+#multi_select
+  ob = obs.observation['multi_select']
+  for i in range(32):
+    ob =np.append(ob,np.zeros([1,7],dtype=np.float32))
+  ms = ob[0:32*7]
+  np.ravel(ms)
+#build_queue
+  ob = obs.observation['build_queue']  
+  for i in range(5):
+    ob = np.append(ob,np.zeros([1,7],dtype=np.float32))
+  bq = ob[0:5*7]
+  np.ravel(bq)
+#production_queue
+
+#last_actions
+  ob = obs.observation['last_actions']
+  la = np.zeros([asize], dtype=np.float32)
+  if len(ob) != 0:
+    la[ob[-1]] = 1
+  #print(ob)
+  np.ravel(la)
+  #player
+  pl = np.zeros([11],dtype=np.float32)
+  ob = obs.observation['player']
+  pl = ob
+  np.ravel(pl)
+  info = np.concatenate((aa,ss,ms,bq,la,pl))
+  return info

@@ -22,7 +22,7 @@ class A3CAgent(object):
     assert msize == ssize
     self.msize = msize
     self.ssize = ssize
-    self.isize = len(actions.FUNCTIONS)
+    self.isize = 1423
     self.beta = 1
     self.eta = 0.001
 
@@ -118,7 +118,8 @@ class A3CAgent(object):
     screen = np.expand_dims(U.preprocess_screen(screen), axis=0)
     # TODO: only use available actions
     info = np.zeros([1, self.isize], dtype=np.float32)
-    info[0, obs.observation['available_actions']] = 1
+    info[0] = U.get_info(obs)
+
 
     feed = {self.minimap: minimap,
             self.screen: screen,
