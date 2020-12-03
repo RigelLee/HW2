@@ -8,12 +8,18 @@ import tensorflow as tf
 from pysc2.lib import actions
 from pysc2.lib import features
 
-from Agent.network import build_fcn
-import Agent.utils as U
+from Agent.network import build_net
+import Agent.preprocess as P
 
+map2net = { 'MoveToBeacon':'FullyConv',
+            'CollectMineralShards':'FullyConvLSTM',
+            'FindAndDefeatZerglings':'Atari',
+            'DefeatRoaches':'Atari',
+            'DefeatZerglingsAndBanelings':'Atari',
+            'CollectMineralsAndGas':'FullyConv',
+            'BuildMarines':'FullyConvLSTM'}
 
 class A3CAgent(object):
-  """An agent specifically for solving the mini-game maps."""
   def __init__(self, training, msize, ssize, name='A3C'):
     self.name = name
     self.training = training
@@ -37,19 +43,19 @@ class A3CAgent(object):
     init_op = tf.global_variables_initializer()
     self.sess.run(init_op)
 
-  def build_model(self, reuse, dev):
+  def build_model(self, reuse, dev, map):
     with tf.variable_scope(self.name) and tf.device(dev):
       if reuse:
         tf.get_variable_scope().reuse_variables()
         assert tf.get_variable_scope().reuse
 
       # Set inputs of networks
-      self.minimap = tf.placeholder(tf.float32, [None, U.minimap_channel(), self.msize, self.msize], name='minimap')
-      self.screen = tf.placeholder(tf.float32, [None, U.screen_channel(), self.ssize, self.ssize], name='screen')
+      self.minimap = tf.placeholder(tf.float32, [None, P.minimap_channel(), self.msize, self.msize], name='minimap')
+      self.screen = tf.placeholder(tf.float32, [None, P.screen_channel(), self.ssize, self.ssize], name='screen')
       self.info = tf.placeholder(tf.float32, [None, self.isize], name='info')
 
       # Build networks
-      net = build_fcn(self.minimap, self.screen, self.info, self.msize, self.ssize, len(actions.FUNCTIONS))
+      net = build_net(self.minimap, self.screen, self.info, len(actions.FUNCTIONS), map2net[map])
       self.spatial_action, self.non_spatial_action, self.value = net
 
       # Set targets and masks
@@ -107,11 +113,11 @@ class A3CAgent(object):
 
   def step(self, obs):
     minimap = np.array(obs.observation['feature_minimap'], dtype=np.float32)
-    minimap = np.expand_dims(U.preprocess_minimap(minimap), axis=0)
+    minimap = np.expand_dims(P.preprocess_minimap(minimap), axis=0)
     screen = np.array(obs.observation['feature_screen'], dtype=np.float32)
-    screen = np.expand_dims(U.preprocess_screen(screen), axis=0)
+    screen = np.expand_dims(P.preprocess_screen(screen), axis=0)
     info = np.zeros([1, self.isize], dtype=np.float32)
-    info[0] = U.get_info(obs)
+    info[0] = P.get_info(obs)
 
 
     feed = {self.minimap: minimap,
@@ -162,9 +168,9 @@ class A3CAgent(object):
       R = 0
     else:
       minimap = np.array(obs.observation['feature_minimap'], dtype=np.float32)
-      minimap = np.expand_dims(U.preprocess_minimap(minimap), axis=0)
+      minimap = np.expand_dims(P.preprocess_minimap(minimap), axis=0)
       screen = np.array(obs.observation['feature_screen'], dtype=np.float32)
-      screen = np.expand_dims(U.preprocess_screen(screen), axis=0)
+      screen = np.expand_dims(P.preprocess_screen(screen), axis=0)
       info = np.zeros([1, self.isize], dtype=np.float32)
       info[0, obs.observation['available_actions']] = 1
 
@@ -189,9 +195,9 @@ class A3CAgent(object):
     rbs.reverse()
     for i, [obs, action, _] in enumerate(rbs):
       minimap = np.array(obs.observation['feature_minimap'], dtype=np.float32)
-      minimap = np.expand_dims(U.preprocess_minimap(minimap), axis=0)
+      minimap = np.expand_dims(P.preprocess_minimap(minimap), axis=0)
       screen = np.array(obs.observation['feature_screen'], dtype=np.float32)
-      screen = np.expand_dims(U.preprocess_screen(screen), axis=0)
+      screen = np.expand_dims(P.preprocess_screen(screen), axis=0)
       info = np.zeros([1, self.isize], dtype=np.float32)
       info[0, obs.observation['available_actions']] = 1
 
