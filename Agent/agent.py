@@ -14,15 +14,16 @@ import Agent.utils as U
 
 class A3CAgent(object):
   """An agent specifically for solving the mini-game maps."""
-  def __init__(self, training, msize, ssize, name='A3C/A3CAgent'):
+  def __init__(self, training, msize, ssize, name='A3C'):
     self.name = name
     self.training = training
     self.summary = []
-    # Minimap size, screen size and info size
+    
     assert msize == ssize
     self.msize = msize
     self.ssize = ssize
     self.isize = 1423
+    self.epsilon = [0.05, 0.2, 0.2]
     self.beta = 1
     self.eta = 0.001
 
@@ -35,12 +36,6 @@ class A3CAgent(object):
   def initialize(self):
     init_op = tf.global_variables_initializer()
     self.sess.run(init_op)
-
-
-  def reset(self):
-    # Epsilon schedule
-    self.epsilon = [0.05, 0.2, 0.2]
-
 
   def build_model(self, reuse, dev):
     with tf.variable_scope(self.name) and tf.device(dev):
@@ -76,13 +71,11 @@ class A3CAgent(object):
       self.summary.append(tf.summary.histogram('non_spatial_action_prob', non_spatial_action_prob))
 
       #Compute entropy regularisation
-
       non_spatial_action_prob_entropy = self.non_spatial_action * tf.log(tf.clip_by_value(self.non_spatial_action, 1e-10, 1.))                                 
       valid_non_spatial_action_prob_entropy = tf.reduce_sum(non_spatial_action_prob_entropy * self.valid_non_spatial_action, axis=1)
       spatial_action_prob_entropy = tf.reduce_sum(self.spatial_action * tf.log(tf.clip_by_value(self.spatial_action, 1e-10, 1.)), axis=1)
       entropy = spatial_action_prob_entropy + valid_non_spatial_action_prob_entropy
 
-      # Compute losses, more details in https://arxiv.org/abs/1602.01783
       # Policy loss and value loss
       action_log_prob = self.valid_spatial_action * spatial_action_log_prob + non_spatial_action_log_prob
       advantage = tf.stop_gradient(self.value_target - self.value)
@@ -92,7 +85,7 @@ class A3CAgent(object):
       self.summary.append(tf.summary.scalar('policy_loss', policy_loss))
       self.summary.append(tf.summary.scalar('value_loss', value_loss))
 
-      # TODO: policy penalty
+      #loss
       loss = policy_loss + self.beta * value_loss + self.eta * entropy_regularisation
 
       # Build the optimizer
@@ -108,6 +101,7 @@ class A3CAgent(object):
       self.train_op = opt.apply_gradients(cliped_grad)
       self.summary_op = tf.summary.merge(self.summary)
 
+      #Saver
       self.saver = tf.train.Saver(max_to_keep=100)
 
 
@@ -116,7 +110,6 @@ class A3CAgent(object):
     minimap = np.expand_dims(U.preprocess_minimap(minimap), axis=0)
     screen = np.array(obs.observation['feature_screen'], dtype=np.float32)
     screen = np.expand_dims(U.preprocess_screen(screen), axis=0)
-    # TODO: only use available actions
     info = np.zeros([1, self.isize], dtype=np.float32)
     info[0] = U.get_info(obs)
 
@@ -139,7 +132,7 @@ class A3CAgent(object):
     if False:
       print(actions.FUNCTIONS[act_id].name, target)
 
-    # Epsilon greedy exploration
+    # Epsilon greedy
     if self.training and np.random.rand() < self.epsilon[0]:
       act_id = np.random.choice(valid_actions)
     if self.training and np.random.rand() < self.epsilon[1]:
@@ -158,7 +151,7 @@ class A3CAgent(object):
       if arg.name in ('screen', 'minimap', 'screen2'):
         act_args.append([target[1], target[0]])
       else:
-        act_args.append([0])  # TODO: Be careful
+        act_args.append([0])  # We guess
     return actions.FunctionCall(act_id, act_args)
 
 
@@ -194,7 +187,7 @@ class A3CAgent(object):
     non_spatial_action_selected = np.zeros([len(rbs), len(actions.FUNCTIONS)], dtype=np.float32)
 
     rbs.reverse()
-    for i, [obs, action, next_obs] in enumerate(rbs):
+    for i, [obs, action, _] in enumerate(rbs):
       minimap = np.array(obs.observation['feature_minimap'], dtype=np.float32)
       minimap = np.expand_dims(U.preprocess_minimap(minimap), axis=0)
       screen = np.array(obs.observation['feature_screen'], dtype=np.float32)

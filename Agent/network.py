@@ -8,8 +8,6 @@ import tensorflow.contrib.layers as layers
 
 def build_fcn(minimap, screen, info, msize, ssize, num_action):
   # Extract features
-  l1_regularizer = layers.l1_regularizer(scale=0.0005)
-  l2_regularizer = layers.l2_regularizer(scale=0.005)
   mconv1 = layers.conv2d(tf.transpose(minimap, [0, 2, 3, 1]),
                          num_outputs=16,
                          kernel_size=5,
@@ -41,32 +39,18 @@ def build_fcn(minimap, screen, info, msize, ssize, num_action):
   info_fc = layers.fully_connected(layers.flatten(info),
                                    num_outputs=256,
                                    activation_fn=tf.tanh,
-                                   #weights_regularizer=l1_regularizer,
                                    scope='info_fc')
   info_fc_spatial = layers.fully_connected(layers.flatten(info),
                                            num_outputs=32,
                                            activation_fn=tf.tanh,
-                                           #weights_regularizer=l1_regularizer,
                                            scope='info_fc_spatial')
   info_fc_spatial = tf.expand_dims(info_fc_spatial, 1)
   info_fc_spatial = tf.expand_dims(info_fc_spatial, 1)
-  for j in range(6):
+
+  #expend to 2D
+  for _ in range(6):
     info_fc_spatial = tf.concat([info_fc_spatial, info_fc_spatial], 1)
     info_fc_spatial = tf.concat([info_fc_spatial, info_fc_spatial], 2)
-  
-#   info_spatial = layers.fully_connected(layers.flatten(info),
-#                                    num_outputs=8,
-#                                    activation_fn=tf.tanh,
-#                                    weights_regularizer=l1_regularizer,
-#                                    scope='info_spatial')  
-#   info_spatial = np.expand_dims(info_spatial, axis=1)
-#   info_spatial = np.expand_dims(info_spatial, axis=1)
-#   for i in range(len(info_spatial)):
-#       for j in range(msize):
-#           for k in range (msize):
-#               info_spatial[i][j][k] = info_spatial[i][0][0]
-
-  # Compute spatial actions
 
   feat_conv = tf.concat([mconv2, sconv2, info_fc_spatial], axis=3)
   spatial_action = layers.conv2d(feat_conv,
@@ -78,12 +62,10 @@ def build_fcn(minimap, screen, info, msize, ssize, num_action):
                                  scope='spatial_action')
   spatial_action = tf.nn.softmax(layers.flatten(spatial_action))
 
-  # Compute non spatial actions and value
   feat_fc = tf.concat([layers.flatten(mconv2), layers.flatten(sconv2), info_fc], axis=1)
   feat_fc = layers.fully_connected(feat_fc,
                                    num_outputs=256,
                                    activation_fn=tf.nn.relu,
-                                   #weights_regularizer=l2_regularizer,
                                    scope='feat_fc')
   non_spatial_action = layers.fully_connected(feat_fc,
                                               num_outputs=num_action,
