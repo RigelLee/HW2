@@ -91,6 +91,8 @@ if not os.path.exists(LOG):
   os.makedirs(LOG)
 if not os.path.exists(OUTPUT):
   os.makedirs(OUTPUT)
+if not os.path.exists(CHECKPIONT):
+  os.makedirs(CHECKPIONT)
 
 
 def run_thread(agent, players, map_name, visualize):
