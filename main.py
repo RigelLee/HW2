@@ -26,8 +26,7 @@ import tensorflow as tf
 
 from absl import app
 from absl import flags
-from future.builtins import range  # pylint: disable=redefined-builtin
-
+from future.builtins import range
 from pysc2 import maps
 from pysc2.env import available_actions_printer
 from pysc2.env import sc2_env
@@ -55,28 +54,27 @@ flags.DEFINE_bool("use_raw_units", False,
                   "Whether to include raw units.")
 
 flags.DEFINE_bool("training", True, "Whether to train agents.")
-flags.DEFINE_bool("continuation", True, "Continuously training.")
+flags.DEFINE_bool("continuation", False, "Continuously training.")
 flags.DEFINE_integer("max_agent_steps", 60, "Total agent steps.")
 flags.DEFINE_integer("game_steps_per_episode", None, "Game steps per episode.")
 flags.DEFINE_integer("step_mul", 8, "Game steps per agent step.")
 flags.DEFINE_float("learning_rate", 5e-4, "Learning rate for training.")
 flags.DEFINE_float("discount", 0.99, "Discount rate for future rewards.")
 flags.DEFINE_integer("max_steps", int(1e6), "Total steps for training.")
-flags.DEFINE_integer("snapshot_step", int(500), "Step for snapshot.")
-flags.DEFINE_string("snapshot_path", "./snapshot/", "Path for snapshot.")
+flags.DEFINE_integer("output_step", int(500), "Step for output.")
+flags.DEFINE_string("output_path", "./output/", "Path for output.")
+flags.DEFINE_string("checkpiont_path", "./checkpiont/", "Path for checkpiont.")
 flags.DEFINE_string("log_path", "./log/", "Path for log.")
 flags.DEFINE_string("device", "0", "Device for training.")
-
 flags.DEFINE_bool("profile", False, "Whether to turn on code profiling.")
 flags.DEFINE_bool("trace", False, "Whether to trace the code execution.")
 flags.DEFINE_integer("parallel", 8, "How many instances to run in parallel.")
-
 flags.DEFINE_bool("save_replay", True, "Whether to save a replay at the end.")
-
-flags.DEFINE_string("map", "MoveToBeacon", "Name of a map to use.")
-#flags.mark_flag_as_required("map")
+flags.DEFINE_string("map", None, "Name of a map to use.")
+flags.mark_flag_as_required("map")
 
 FLAGS(sys.argv)
+
 if FLAGS.training:
   PARALLEL = FLAGS.parallel
   MAX_AGENT_STEPS = FLAGS.max_agent_steps
@@ -87,11 +85,12 @@ else:
   DEVICE = ['/cpu:0']
 
 LOG = FLAGS.log_path+FLAGS.map
-SNAPSHOT = FLAGS.snapshot_path+FLAGS.map
+OUTPUT = FLAGS.output_path+FLAGS.map
+CHECKPIONT = FLAGS.checkpiont_path+FLAGS.map
 if not os.path.exists(LOG):
   os.makedirs(LOG)
-if not os.path.exists(SNAPSHOT):
-  os.makedirs(SNAPSHOT)
+if not os.path.exists(OUTPUT):
+  os.makedirs(OUTPUT)
 
 
 def run_thread(agent, players, map_name, visualize):
@@ -126,8 +125,8 @@ def run_thread(agent, players, map_name, visualize):
           learning_rate = FLAGS.learning_rate * (1 - 0.9 * counter / FLAGS.max_steps)
           agent.update(replay_buffer, FLAGS.discount, learning_rate, counter)
           replay_buffer = []
-          if counter % FLAGS.snapshot_step == 1:
-            agent.save_model(SNAPSHOT, counter)
+          if counter % FLAGS.output_step == 1:
+            agent.save_model(OUTPUT, counter)
           if counter >= FLAGS.max_steps:
             break
           obs = recorder[-1].observation
@@ -156,7 +155,7 @@ def main(unused_argv):
   agents = []
   for i in range(PARALLEL):
     agent = A3CAgent(FLAGS.training, int(FLAGS.feature_minimap_size[0]), int(FLAGS.feature_screen_size[0]))
-    agent.build_model(i > 0, DEVICE[i % len(DEVICE)])
+    agent.build_model(i > 0, DEVICE[i % len(DEVICE)], FLAGS.map)
     agents.append(agent)
 
   config = tf.ConfigProto(allow_soft_placement=True)
@@ -170,7 +169,7 @@ def main(unused_argv):
 
   if not FLAGS.training or FLAGS.continuation:
     global COUNTER
-    COUNTER = agent.load_model(SNAPSHOT)
+    COUNTER = agent.load_model(CHECKPIONT)
 
   threads = []
   for _ in range(PARALLEL - 1):
